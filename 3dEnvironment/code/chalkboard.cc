@@ -115,7 +115,7 @@ GLuint *textures = new GLuint[3];
 	      printf("\nError reading texture\n");
 	      return;
 	    }
-	  glBindTexture(GL_TEXTURE_2D, textures[0]);
+	  glBindTexture(GL_TEXTURE_2D, texMetal);//textures[0]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
 
 	}
@@ -131,7 +131,7 @@ GLuint *textures = new GLuint[3];
 	      printf("\nError reading texture\n");
 	      return;
 	    }
-	  glBindTexture(GL_TEXTURE_2D, textures[1]);
+	  glBindTexture(GL_TEXTURE_2D, texTire);//textures[1]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
 	}
     }
@@ -154,14 +154,15 @@ GLuint *textures = new GLuint[3];
 	      printf("\nError reading texture\n");
 	      return;
 	    }
-	  glBindTexture(GL_TEXTURE_2D, textures[2]);
+	  glBindTexture(GL_TEXTURE_2D, texName);//textures[2]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
 
 	}
       else if(strcmp(name,"Track")==0 ||strcmp(name,"MarkB")==0  
 	      ||strcmp(name,"Ramp01")==0  || strcmp(name,"Ramp02")==0)
 	{
-	  //      	((A3dObject *)objects->get_item(i))->draw_object();
+	  glBindTexture(GL_TEXTURE_2D,0);
+	  ((A3dObject *)objects->get_item(i))->draw_object();
 	}
 	else
 	  {
@@ -172,6 +173,7 @@ GLuint *textures = new GLuint[3];
 	      }
 	    else 
 	      {
+		glBindTexture(GL_TEXTURE_2D,0);
 		((A3dObject *)objects->get_item(i))->draw_object();
 	      }
 	  }
@@ -182,7 +184,10 @@ GLuint *textures = new GLuint[3];
 	glColor3f(0.0,0.0,1.0);
   for(i=0;i<objects->get_count();i++)
     if(strncmp(((A3dObject *)objects->get_item(i))->get_name(),"propeller",9)==0)
-      ((A3dObject *)objects->get_item(i))->draw_object();
+      {
+	glBindTexture(GL_TEXTURE_2D,0);
+	((A3dObject *)objects->get_item(i))->draw_object();
+      }
   glEndList();
 
 
@@ -334,7 +339,7 @@ GLuint ChalkBoard::LoadTextureRAW( const char * filename,
   fread( data, width * height * 3, 1, file );
   fclose( file );
 
-  glBindTexture( GL_TEXTURE_2D, texture ); //bind the texture
+  //    glBindTexture( GL_TEXTURE_2D, texture ); //bind the texture
 
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE ); 
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
@@ -343,15 +348,17 @@ GLuint ChalkBoard::LoadTextureRAW( const char * filename,
  GL_LINEAR );
 
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
-GL_REPEAT );
+ GL_LINEAR );
+    //GL_REPEAT );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
-GL_REPEAT );
+ GL_LINEAR );
+    //GL_REPEAT );
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     //automatic texture coordinates generation
-    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
 
 
     free( data );
