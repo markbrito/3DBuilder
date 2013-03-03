@@ -63,9 +63,6 @@ ChalkBoard::ChalkBoard(int argc, char **argv,int windowx,int windowy,
    glMaterialfv(GL_FRONT, GL_DIFFUSE, matDiff);
    glMaterialfv(GL_FRONT, GL_SPECULAR, matSpec);
    glMaterialf(GL_FRONT, GL_SHININESS, matShine);
-  glEnable(GL_TEXTURE_GEN_S);
-  glEnable(GL_TEXTURE_GEN_T);
-  glEnable(GL_TEXTURE_2D);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 GLuint *textures = new GLuint[3];
@@ -117,6 +114,9 @@ GLuint *textures = new GLuint[3];
 	    }
 	  glBindTexture(GL_TEXTURE_2D, texMetal);//textures[0]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
+   glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
+  glDisable(GL_TEXTURE_2D);
 
 	}
       else if(strcmp(name,"Tube")==0)
@@ -133,6 +133,10 @@ GLuint *textures = new GLuint[3];
 	    }
 	  glBindTexture(GL_TEXTURE_2D, texTire);//textures[1]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
+   glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
+  glDisable(GL_TEXTURE_2D);
+
 	}
     }
   glEndList();
@@ -156,12 +160,15 @@ GLuint *textures = new GLuint[3];
 	    }
 	  glBindTexture(GL_TEXTURE_2D, texName);//textures[2]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
+   glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
+  glDisable(GL_TEXTURE_2D);
 
 	}
       else if(strcmp(name,"Track")==0 ||strcmp(name,"MarkB")==0  
 	      ||strcmp(name,"Ramp01")==0  || strcmp(name,"Ramp02")==0)
 	{
-	  glBindTexture(GL_TEXTURE_2D,0);
+	  //	  glBindTexture(GL_TEXTURE_2D,0);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
 	}
 	else
@@ -173,7 +180,7 @@ GLuint *textures = new GLuint[3];
 	      }
 	    else 
 	      {
-		glBindTexture(GL_TEXTURE_2D,0);
+		//		glBindTexture(GL_TEXTURE_2D,0);
 		((A3dObject *)objects->get_item(i))->draw_object();
 	      }
 	  }
@@ -185,7 +192,7 @@ GLuint *textures = new GLuint[3];
   for(i=0;i<objects->get_count();i++)
     if(strncmp(((A3dObject *)objects->get_item(i))->get_name(),"propeller",9)==0)
       {
-	glBindTexture(GL_TEXTURE_2D,0);
+	//	glBindTexture(GL_TEXTURE_2D,0);
 	((A3dObject *)objects->get_item(i))->draw_object();
       }
   glEndList();
@@ -338,6 +345,10 @@ GLuint ChalkBoard::LoadTextureRAW( const char * filename,
   unsigned char *data = (unsigned char *)malloc( width * height * 3 );
   fread( data, width * height * 3, 1, file );
   fclose( file );
+   glEnable(GL_TEXTURE_GEN_S);
+  glEnable(GL_TEXTURE_GEN_T);
+  glEnable(GL_TEXTURE_2D);
+
 
   //    glBindTexture( GL_TEXTURE_2D, texture ); //bind the texture
 
