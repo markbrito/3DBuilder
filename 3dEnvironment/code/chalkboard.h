@@ -1,0 +1,40 @@
+#ifndef CHALK_BOARD_H
+#define CHALK_BOARD_H
+
+#include <GL/glut.h>
+#include <stdlib.h>
+#include "list.h"
+//#include "CollisionDetector.h"
+
+static int MAINWIDTH=600;
+static int MAINHEIGHT=600;
+
+class ChalkBoard
+{
+protected:
+  const char *WINDOW_TITLE;
+  static List *objects;
+    //  static CollisionDetector *colldetector;
+public:
+  static ChalkBoard *instance;
+  int X_START;
+  int Y_START;
+  ChalkBoard(int argc, char **argv,int windowx,
+	     int windowy,char *title,int x,int y,
+	     int width,int height,int z,int zdepth,List *objects);
+  static void keyboard(unsigned char key, int x, int y);
+  static void display(void);
+  static void reshape(int w, int h);
+  static void animate(void);
+  void WriteFile(char *filename);
+  void run(void);
+  GLuint LoadTextureRAW( const char * filename,
+			 int w, int h);
+  void FreeTexture( GLuint texture );
+};
+#else
+#endif
+
+
+
+
