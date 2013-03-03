@@ -6,6 +6,9 @@
 #include "list.h"
 //#include "CollisionDetector.h"
 
+static int MAINWIDTH=600;
+static int MAINHEIGHT=600;
+
 class ChalkBoard
 {
 protected:
@@ -13,8 +16,7 @@ protected:
   static List *objects;
     //  static CollisionDetector *colldetector;
 public:
-  int WIDTH;
-  int HEIGHT;
+  static ChalkBoard *instance;
   int X_START;
   int Y_START;
   ChalkBoard(int argc, char **argv,int windowx,
@@ -24,7 +26,11 @@ public:
   static void display(void);
   static void reshape(int w, int h);
   static void animate(void);
+  void WriteFile(char *filename);
   void run(void);
+  GLuint LoadTextureRAW( const char * filename,
+			 int w, int h);
+  void FreeTexture( GLuint texture );
 };
 #else
 #endif
