@@ -21,6 +21,7 @@ float ypos=0;
 
 static GLuint texName;
 static GLuint texMetal;
+static GLuint texTire;
 
 List *ChalkBoard::objects;
 ChalkBoard *ChalkBoard::instance;
@@ -42,6 +43,40 @@ ChalkBoard::ChalkBoard(int argc, char **argv,int windowx,int windowy,
   glutCreateWindow(this->WINDOW_TITLE);
   glClearColor(0.0,0.0,0.0,0.0);
   glShadeModel(GL_SMOOTH);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+GLuint *textures = new GLuint[3];
+  glGenTextures( 3, textures);
+	  int texMetalWidth=276;
+	  int texMetalHeight=183;
+	  texMetal = LoadTextureRAW( "metal.rgb",
+				     texMetalWidth,
+				     texMetalHeight);
+	  if(!texMetal) 
+	    {
+	      printf("\nError reading texture\n");
+	      return;
+	    }
+	  int texTireWidth=225;
+	  int texTireHeight=225;
+	  texTire = LoadTextureRAW( "tire.rgb",
+				     texTireWidth,
+				     texTireHeight);
+	  if(!texTire) 
+	    {
+	      printf("\nError reading texture\n");
+	      return;
+	    }
+	  int texImageWidth=2000;
+	  int texImageHeight=1500;
+	  texName = LoadTextureRAW( "wood.rgb",
+				     texImageWidth,
+				     texImageHeight);
+	  if(!texName) 
+	    {
+	      printf("\nError reading texture\n");
+	      return;
+	    }
 
    GLfloat light0Pos[4] = { 10.70F, 10.70F, 11.25F, 1.0F };
    GLfloat matAmb[4] = { 0.5F, 0.5F, 0.5F, .50F };
@@ -97,19 +132,10 @@ ChalkBoard::ChalkBoard(int argc, char **argv,int windowx,int windowy,
       char *name=((A3dObject *)objects->get_item(i))->get_name();
       if(strcmp(name,"Body")==0)
 	{
-	  int texMetalWidth=276;
-	  int texMetalHeight=183;
-	  texMetal = LoadTextureRAW( "metal.rgb",
-				     texMetalWidth,
-				     texMetalHeight);
-	  if(!texMetal) 
-	    {
-	      printf("\nError reading texture\n");
-	      return;
-	    }
 	  glEnable(GL_TEXTURE_GEN_S);
 	  glEnable(GL_TEXTURE_GEN_T);
 	  glEnable(GL_TEXTURE_2D);
+   glBindTexture(GL_TEXTURE_2D, textures[0]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
 	  glDisable(GL_TEXTURE_GEN_S);
 	  glDisable(GL_TEXTURE_GEN_T);
@@ -118,6 +144,8 @@ ChalkBoard::ChalkBoard(int argc, char **argv,int windowx,int windowy,
 	}
       else if(strcmp(name,"Tube")==0)
 	{
+
+	  glBindTexture(GL_TEXTURE_2D, textures[1]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
 	}
     }
@@ -130,19 +158,10 @@ ChalkBoard::ChalkBoard(int argc, char **argv,int windowx,int windowy,
       char *name=((A3dObject *)objects->get_item(i))->get_name();
       if(strcmp(name,"Floor")==0)
 	{
-	  int texImageWidth=4000;
-	  int texImageHeight=3000;
-	  texName = LoadTextureRAW( "wood.rgb",
-				    texImageWidth,
-				    texImageHeight );
-	  if ( !texName)
-	    {
-	      printf("\nError reading texture\n");
-	      return;
-	    }
 	  glEnable(GL_TEXTURE_GEN_S);
 	  glEnable(GL_TEXTURE_GEN_T);
 	  glEnable(GL_TEXTURE_2D);
+   glBindTexture(GL_TEXTURE_2D, textures[2]);
 	  ((A3dObject *)objects->get_item(i))->draw_object();
 	  glDisable(GL_TEXTURE_GEN_S);
 	  glDisable(GL_TEXTURE_GEN_T);
@@ -321,8 +340,6 @@ GLuint ChalkBoard::LoadTextureRAW( const char * filename,
   unsigned char *data = (unsigned char *)malloc( width * height * 3 );
   fread( data, width * height * 3, 1, file );
   fclose( file );
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glGenTextures( 1, &texture );
 
    glBindTexture( GL_TEXTURE_2D, texture ); //bind the texture
 
@@ -343,7 +360,10 @@ GL_REPEAT );
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
     glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
 
+
     free( data );
+
+
     return texture; 
 }
 
