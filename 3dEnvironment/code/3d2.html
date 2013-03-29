@@ -1,0 +1,59 @@
+    <html>
+  <head>
+    <title>
+    </title>
+    <script language="javascript" src="/jquery.js">
+    </script>
+<script language="javascript">
+    var uri="http://localhost:8484/";
+var arr=new Array();
+var timeout=undefined;
+$(document).ready(function(){
+    uri="http://localhost:8484/";
+    arr=new Array();
+    timeout=undefined;
+    document.getElementById('img3DMainView').src= uri+'frame.gif';});
+function imgloaded(){
+    $("BUTTON").each(function(){this.disabled=false;});
+    if(timeout!=undefined){
+	clearTimeout(timeout);
+    }
+}
+function control(op){
+    var args="";
+    if(op.indexOf('?')>0){
+	args=op.split('?')[1]+'&';
+	op=op.split('?')[0];
+  }
+    $("BUTTON").each(function(){this.disabled=true;});
+    var i=document.getElementById('img3DMainView');
+    i.onload=imgloaded;
+    i.src =uri+'render.gif?'+args+'r='+Math.floor(Math.random()*999999)+ '/'+op;
+    arr.push(i);
+    timeout=setTimeout('var ix=arr.shift();ix.src=uri+"frame.gif";'+
+       '$("BUTTON").each(function(){this.disabled=false;});',8000);
+}
+</script>
+</head>
+<body onload="">
+  <div id="formIFrameMain">
+    <DIV ID="divRoot"  style=" position: fixed; left: 0%; top: 0%; width: 100%; height: 100%;background-color:black; color: #aa00cc; text-align: center; font-family: system;">
+      <DIV ID="divMainView"  style=" display: inline; width: 100%; border: none; top: 0; position: relative;">
+	<IMG ID="img3DMainView"  src="" style="position: relative; height: 90%; top: 5%; left: 0%; border: none;"/>
+      </DIV>
+      <DIV ID="divControls"  style=" position: fixed; left: auto; top: 0%; right: 0px; height: 75px; width: 75px; background-color: #440044; padding: ; border: none; font-size: ; word-spacing: normal;">
+	<BUTTON ID="btnControlAccelerate"  style=" position: absolute; top: 0; left: 50%; width: 24px; margin-left: -12px; height: 24px; font-size: 10px; padding: 0 0 0 0;" onclick="control('TRANSFORM?dx=1&da=0');"/>+
+</BUTTON>
+<BUTTON ID="btnControlDeccelerate"  style=" bottom: 0px; position: absolute; width: 24px; height: 24px; margin-left: -12px; font-size: 10px; padding: 0 0 0 0;" onclick="control('TRANSFORM?dx=-1&da=0');">-
+</BUTTON>
+<BUTTON ID="btnControlLeft"  style=" top: 50%; position: absolute; left: 0px; margin-top: -12px; height: 24px; font-size: 10px; width: 24px; padding: 0 0 0 0;" onclick="control('LEFT');">&lt;
+</BUTTON>
+<BUTTON ID="btnControlRight"  onclick="control('RIGHT');"  style=" top: 50%; position: absolute; margin-top: -12px; height: 24px; width: 24px; right: 0px; font-size: 10px; padding: 0 0 0 0;">&gt;
+</BUTTON>
+</DIV>
+</DIV>
+</div>
+<div id="divHidden" style="display:none;">
+</div>
+</body>
+</html>

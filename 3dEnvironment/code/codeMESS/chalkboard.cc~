@@ -1,0 +1,472 @@
+#include <GL/glut.h>
+#include <string.h>
+#include <math.h>
+#include <ctype.h>
+#include <time.h>
+#include <pthread.h>
+#include <X11/Xlib.h>
+#include "chalkboard.h"
+#include "AscFile.h"
+#include "list.h"
+
+#define MAX_SPEED 10
+#define PI 3.14
+
+int objFan;
+int objHooverCraft;
+int objScene;
+float speed=0;
+float directionangle=0;
+float fanangle=0;
+float xpos=0;
+float ypos=0;
+
+int screenShot=0;
+char screenShotFilename[256];
+
+static GLuint texName;
+static GLuint texMetal;
+static GLuint texTire;
+
+List *ChalkBoard::objects;
+ChalkBoard *ChalkBoard::instance;
+///CollisionDetector *ChalkBoard::colldetector;
+
+//pthread_mutex_t    mutex = PTHREAD_MUTEX_INITIALIZER;
+
+ChalkBoard::ChalkBoard(int argc, char **argv,int windowx,int windowy,
+		       char *title,int x,int y,int width,int height,int z,int zdepth,List *objs)
+{
+  WINDOW_TITLE=strdup(title);
+  X_START=x;
+  Y_START=y;
+  ChalkBoard::objects=objs;
+    //  ChalkBoard::colldetector=new CollisionDetector(ChalkBoard::objects);
+
+  glutInit(&argc,argv);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );
+  glutInitWindowSize(windowx,windowy);
+  //  glutInitWindowPosition(100,100);
+  glutCreateWindow(this->WINDOW_TITLE);
+XInitThreads();
+  glClearColor(0.0,0.0,0.0,0.0);
+  glShadeModel(GL_SMOOTH);
+
+   GLfloat light0Pos[4] = { 10.70F, 10.70F, 11.25F, 1.0F };
+   GLfloat matAmb[4] = { 0.5F, 0.5F, 0.5F, .50F };
+   GLfloat matDiff[4] = { 0.5F, 0.5F, 0.50F, .5F };
+   GLfloat matSpec[4] = { 0.50F, 0.50F, 0.50F, .50F };
+   GLfloat matShine = 20.00F;
+   glEnable(GL_NORMALIZE);
+ 
+   glEnable( GL_LIGHTING );
+   glEnable( GL_LIGHT0 );
+   glEnable(GL_COLOR_MATERIAL);
+	 
+   glEnable(GL_DEPTH_TEST);
+		
+   glLightfv(GL_LIGHT0, GL_POSITION, light0Pos);
+   glMaterialfv(GL_FRONT, GL_AMBIENT, matAmb);
+
+   glMaterialfv(GL_FRONT, GL_DIFFUSE, matDiff);
+   glMaterialfv(GL_FRONT, GL_SPECULAR, matSpec);
+   glMaterialf(GL_FRONT, GL_SHININESS, matShine);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+GLuint *textures = new GLuint[3];
+  glGenTextures( 3, textures);
+   //
+   //   glCullFace(GL_BACK);
+   //
+   //   glEnable( GL_CULL_FACE );
+
+  glViewport(0,0,width,height);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  // glOrtho(-1.0,1.0,-1.0,1.0,-1.0,1.0);
+  // glOrtho((float)x,(float)x+width,(float)y,(float)y+height,z,zdepth);
+  //glFrustum((float)x,(float)x+width,(float)y,(float)y+height,zdepth,zdepth);
+
+  gluPerspective(60.0,(float)width/(float)height,1,1300);
+  glMatrixMode(GL_MODELVIEW);
+  gluLookAt(-23,110,15,-23,0,15,0,0,1);
+    //gluLookAt(-8,10,1,-8,0,1,0,0,1);
+    //glLoadIdentity();
+    //  glTranslatef(0,50,0);
+    //  glRotatef(180.0,0.0,.0,1.0);
+    //  glScalef(.3,.3,.3);
+
+
+  objFan=glGenLists(1);
+  objHooverCraft=glGenLists(1);
+  objScene=glGenLists(1);
+
+  glNewList(objHooverCraft,GL_COMPILE);
+	glColor3f(1.0,0.0,0.0);
+  int i;
+  for(i=0;i<objects->get_count();i++)
+    {
+      char *name=((A3dObject *)objects->get_item(i))->get_name();
+      if(strcmp(name,"Body")==0)
+	{
+	  int texMetalWidth=276;
+	  int texMetalHeight=183;
+	  texMetal = LoadTextureRAW( "metal.rgb",
+				     texMetalWidth,
+				     texMetalHeight);
+	  if(!texMetal) 
+	    {
+	      printf("\nError reading texture\n");
+	      return;
+	    }
+	  glBindTexture(GL_TEXTURE_2D, texMetal);//textures[0]);
+	  ((A3dObject *)objects->get_item(i))->draw_object();
+   glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
+  glDisable(GL_TEXTURE_2D);
+
+	}
+      else if(strcmp(name,"Tube")==0)
+	{
+	  int texTireWidth=225;
+	  int texTireHeight=225;
+	  texTire = LoadTextureRAW( "tire.rgb",
+				     texTireWidth,
+				    texTireHeight);
+	  if(!texTire) 
+	    {
+	      printf("\nError reading texture\n");
+	      return;
+	    }
+	  glBindTexture(GL_TEXTURE_2D, texTire);//textures[1]);
+	  ((A3dObject *)objects->get_item(i))->draw_object();
+   glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
+  glDisable(GL_TEXTURE_2D);
+
+	}
+    }
+  glEndList();
+
+  glNewList(objScene,GL_COMPILE);
+  glColor3f(0.0,1.0,0.0);
+  for(i=0;i<objects->get_count();i++)
+    {
+      char *name=((A3dObject *)objects->get_item(i))->get_name();
+      if(strcmp(name,"Floor")==0)
+	{
+	  int texImageWidth=2000;
+	  int texImageHeight=1500;
+	  texName = LoadTextureRAW( "wood.rgb",
+				     texImageWidth,
+				    texImageHeight);
+	  if(!texName) 
+	    {
+	      printf("\nError reading texture\n");
+	      return;
+	    }
+	  glBindTexture(GL_TEXTURE_2D, texName);//textures[2]);
+	  ((A3dObject *)objects->get_item(i))->draw_object();
+   glDisable(GL_TEXTURE_GEN_S);
+  glDisable(GL_TEXTURE_GEN_T);
+  glDisable(GL_TEXTURE_2D);
+
+	}
+      else if(strcmp(name,"Track")==0 ||strcmp(name,"MarkB")==0  
+	      ||strcmp(name,"Ramp01")==0  || strcmp(name,"Ramp02")==0)
+	{
+	  //	  glBindTexture(GL_TEXTURE_2D,0);
+	  ((A3dObject *)objects->get_item(i))->draw_object();
+	}
+	else
+	  {
+            if(strcmp(name,"Tube")==0 || 
+	       ( strncmp(((A3dObject *)objects->get_item(i))->get_name(),"propeller",9)==0) || strcmp(name,"Body")==0)
+	      {
+		;
+	      }
+	    else 
+	      {
+		//		glBindTexture(GL_TEXTURE_2D,0);
+		((A3dObject *)objects->get_item(i))->draw_object();
+	      }
+	  }
+    }
+  glEndList();
+
+  glNewList(objFan,GL_COMPILE);
+	glColor3f(0.0,0.0,1.0);
+  for(i=0;i<objects->get_count();i++)
+    if(strncmp(((A3dObject *)objects->get_item(i))->get_name(),"propeller",9)==0)
+      {
+	//	glBindTexture(GL_TEXTURE_2D,0);
+	((A3dObject *)objects->get_item(i))->draw_object();
+      }
+  glEndList();
+
+
+ 
+  glutReshapeFunc(reshape);
+  glutKeyboardFunc(keyboard);
+  glutDisplayFunc(display);
+  glutIdleFunc(animate);
+}
+
+void ChalkBoard::animate(void)
+{
+  //  pthread_mutex_lock(&mutex);
+  fanangle++;
+  if(fanangle>=360) fanangle=0;
+  glutPostRedisplay();
+  //  pthread_mutex_unlock(&mutex);
+}
+
+void ChalkBoard::keyboard(unsigned char key, int x, int y)
+{  
+//pthread_mutex_lock(&mutex);  
+char file[256];
+  char * dt=__DATE__;  
+  int d=0;
+  for(int d=0;d<strlen(dt);++d)
+    if(!(isalpha(dt[d]) || isdigit(dt[d])))
+      dt[d]='_';
+  switch(key)
+    {
+    case 's':
+strcat(file,"ScreenShot");
+strcat(file,dt);
+strcat(file,".ppm");
+      (ChalkBoard::instance)->WriteFile(file);
+      break;
+	case '5':
+      glMatrixMode(GL_MODELVIEW);
+      glRotatef(-5,1.0,0.0,0.0);
+      break;
+    case '/':
+      glMatrixMode(GL_MODELVIEW);
+      glRotatef(5,1.0,0.0,0.0);
+      break;
+    case '7':
+      glMatrixMode(GL_MODELVIEW);
+      glRotatef(5,0.0,1.0,0.0);
+      break;
+    case '9':
+      glMatrixMode(GL_MODELVIEW);
+      glRotatef(-5,0.0,1.0,0.0);
+      break;
+
+    case '-':
+      glMatrixMode(GL_MODELVIEW);
+      glScalef(1.0/1.2,1.0/1.2,1.0/1.2);
+      break;
+    case '+':
+      glMatrixMode(GL_MODELVIEW);
+      glScalef(1.2,1.2,1.2);
+
+      break;
+
+    case 'q':
+    case 'Q':
+      exit(0);
+      break;
+    case '8':
+      if(speed<=MAX_SPEED)
+	speed++;
+      break;
+    case '2':
+      if(speed>= -MAX_SPEED)
+	speed--;
+      break;
+    case '4':
+      directionangle+=5;
+      if(directionangle>=360) directionangle=0;
+
+      break;
+    case '6':
+      directionangle-=5;
+      if(directionangle<=-360) directionangle=0;
+
+      break;
+
+    case 'a': case 'A':
+      
+      break;
+    default:
+      printf("%d",key);
+      break;
+    }
+//pthread_mutex_unlock(&mutex);
+}
+
+void ChalkBoard::display(void)
+{
+  //pthread_mutex_lock(&mutex);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glColor3f(1.0,1.0,1.0);
+
+
+ // colldetector->DrawBoundingBoxes();
+  
+  glPushMatrix();
+  glMatrixMode(GL_MODELVIEW);
+
+  ypos-=cos((PI/180.0)*directionangle)*speed*10;
+  xpos+=sin((PI/180.0)*directionangle)*speed*10;
+  glTranslatef(xpos,ypos,0);
+  glRotatef(directionangle,0,0,1);
+
+  glCallList(objHooverCraft);
+  glCallList(objFan);
+
+  glPopMatrix();
+  glCallList(objScene);
+   
+  //  glTranslatef(xpos,ypos,0);
+  glLoadIdentity();
+
+
+  gluLookAt(-23+xpos+2*sin((PI/180.0)*directionangle)*110,110+ypos,15,-23+xpos,ypos,15,0,0,1);
+
+
+  glFlush();
+  glutSwapBuffers();  
+struct timespec req;
+ req.tv_sec = 1/2;
+ req.tv_nsec = 1000/2;
+  int res = clock_nanosleep (CLOCK_REALTIME, 0, &req, NULL);
+
+if(screenShot>0){
+      (ChalkBoard::instance)->WriteFile();
+screenShot=0;
+}
+    //pthread_mutex_unlock(&mutex);
+}
+
+void ChalkBoard::reshape(int w, int h)
+{
+
+}
+
+void ChalkBoard::run(void)
+{
+  glutMainLoop();
+
+    FreeTexture( texName );
+    FreeTexture( texTire );
+    FreeTexture( texMetal );
+}
+
+
+GLuint ChalkBoard::LoadTextureRAW( const char * filename, 
+				   int w, int h)
+{
+  GLuint texture;
+  int width, height;
+  FILE * file;
+    file = fopen( filename, "rb" );
+  if ( file == NULL ) return 0;
+  width = w;
+  height = h;
+  unsigned char *data = (unsigned char *)malloc( width * height * 3 );
+  fread( data, width * height * 3, 1, file );
+  fclose( file );
+   glEnable(GL_TEXTURE_GEN_S);
+  glEnable(GL_TEXTURE_GEN_T);
+  glEnable(GL_TEXTURE_2D);
+
+
+  //    glBindTexture( GL_TEXTURE_2D, texture ); //bind the texture
+
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE ); 
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+ GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+ GL_LINEAR );
+
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
+ GL_LINEAR );
+    //GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
+ GL_LINEAR );
+    //GL_REPEAT );
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    //automatic texture coordinates generation
+        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+
+
+    free( data );
+
+
+    return texture; 
+}
+
+void ChalkBoard::FreeTexture( GLuint texture )
+{
+  glDeleteTextures( 1, &texture ); 
+}
+void ChalkBoard::WriteFile(char *filename)
+{
+screenShot=1;strcpy(screenShotFilename,filename);
+  glutPostRedisplay();
+}
+void ChalkBoard::WriteFile()
+{
+  //pthread_mutex_lock(&mutex);
+   FILE *f;
+   GLubyte *image;
+   int i;
+   int gWidth=MAINWIDTH;
+   int gHeight=MAINHEIGHT;
+
+   image = (GLubyte *)malloc(gWidth * gHeight * 3 * sizeof(GLubyte));
+   if (!image) {
+      printf("Error: couldn't allocate image buffer\n");
+      return;
+   }
+   glFlush();
+   glutSwapBuffers();  
+   glPixelStorei(GL_PACK_ALIGNMENT, 1);
+   glReadPixels(0, 0, gWidth, gHeight, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+   f = fopen(screenShotFilename, "w");
+   if (!f) {
+      printf("Couldn't open image file: %s\n", screenShotFilename);
+      return;
+   }
+   fprintf(f,"P6\n");
+   fprintf(f,"# ppm-file created by %s\n", "3dEnvironment");
+   fprintf(f,"%i %i\n", gWidth, gHeight);
+   fprintf(f,"255\n");
+   fclose(f);
+   f = fopen(screenShotFilename, "ab");  /* now append binary data */
+   if (!f) {
+      printf("Couldn't append to image file: %s\n", screenShotFilename);
+      return;
+   }
+
+   for (i=0;i<gHeight;i++) {
+      GLubyte *rowPtr;
+      /* Remember, OpenGL images are bottom to top.  Have to reverse. */
+      rowPtr = image + (gHeight-1-i) * gWidth*3;
+      fwrite(rowPtr, 1, gWidth*3, f);
+   }
+
+   fclose(f);
+   free(image);
+
+   printf("Wrote %d by %d image file: %s\n", gWidth, gHeight, screenShotFilename);
+   //pthread_mutex_unlock(&mutex);
+}
+
+float ChalkBoard::GetSpeed()
+{
+  return speed;
+}
+float ChalkBoard::GetDirection()
+{
+  return directionangle;
+}

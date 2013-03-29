@@ -1,0 +1,53 @@
+21c21
+< #define DOCUMENTROOT "c:\\Users\\Mark\\Desktop\\3dEnvironment\\code"
+---
+> #define DOCUMENTROOT "c:\\cygwin\\home\\Mark"
+150d149
+< char ok[3]="OK";
+160,173c159
+<   if(strstr(strupr(uri),strupr("/ACC"))!=0){
+<     (ChalkBoard::instance)->keyboard('8',0,0);
+<   }
+<   else if(strstr(strupr(uri),strupr("/DEC"))!=0){
+<     (ChalkBoard::instance)->keyboard('2',0,0);
+<   }
+<   else if(strstr(strupr(uri),strupr("/LEFT"))!=0){
+<     (ChalkBoard::instance)->keyboard('4',0,0);
+<   }
+<   else if(strstr(strupr(uri),strupr("/RIGHT"))!=0){
+<     (ChalkBoard::instance)->keyboard('6',0,0);
+<   }
+<   if(strstr(strupr(uri),strupr("/FRAME"))!=0 ||
+<   strstr(strupr(uri),strupr("/RENDER.GIF"))!=0){
+---
+>   if(strstr(strupr(uri),strupr("/RENDER.GIF"))!=0){
+188c174
+< strcat(cmd,"convert.exe \"");
+---
+> strcat(cmd,"pnmtopng.exe ");
+190c176
+< strcat(cmd, "\" \"");
+---
+> strcat(cmd, " > \'");
+192,194c178
+< strcat(cmd, "\" ; cp \"");
+< strcat(cmd, nmout);
+< strcat(cmd, "\" frame.gif");
+---
+> strcat(cmd, "\'");
+201,202c185
+< }
+<   if(strstr(strupr(uri),strupr("/RENDER.GIF"))!=0){
+---
+> 
+208,211d190
+<   else if(strstr(strupr(uri),strupr("/FRAME"))!=0 ){
+< memory_buffer=ok;	
+< buffer_size=sizeof(ok[0])*strlen(ok);
+<   }
+233,234c212,213
+<       pthread_t thispthread=pthread_self();
+<         pthread_detach(thispthread);
+---
+>     //  pthread_t thispthread=pthread_self();
+>       //  pthread_detach(thispthread);

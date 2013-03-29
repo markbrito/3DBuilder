@@ -1,0 +1,7 @@
+#ifndef WEBSERVER_H
+#define WEBSERVER_H 
+extern "C"
+{
+int startWebserver();
+}
+#endif
