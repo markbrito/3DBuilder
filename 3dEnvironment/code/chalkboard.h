@@ -27,7 +27,10 @@ public:
   static void reshape(int w, int h);
   static void animate(void);
   void WriteFile(char *filename);
+  void WriteFile();
   void run(void);
+  float GetSpeed();
+  float GetDirection();
   GLuint LoadTextureRAW( const char * filename,
 			 int w, int h);
   void FreeTexture( GLuint texture );
